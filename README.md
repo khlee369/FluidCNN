@@ -16,3 +16,8 @@ print(x.shape) # torch.Size([8, 3, 12])
 out = model(x)
 print(out.shape) # torch.Size([8, 65536])
 ```
+## train
+See train.py 
+```
+python train.py
+```
