@@ -12,7 +12,7 @@ model = FluidCNN(in_features=in_f , in_ch=in_ch )
 
 batch_size = 8
 x = torch.ones(batch_size , in_ch, in_f)
-print(x.shape)
+print(x.shape) # torch.Size([8, 3, 12])
 out = model(x)
-print(out.shape)
+print(out.shape) # torch.Size([8, 65536])
 ```
