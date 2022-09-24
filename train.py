@@ -41,10 +41,8 @@ def main(args):
 
             loss.backward()
             optimizer.step()
-
         
         train_loss = loss.item()
-
 
         print("epoch : ", epoch)
         print("loss : ", train_loss)
