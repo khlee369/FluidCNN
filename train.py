@@ -11,13 +11,20 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 import argparse
 
-from dataset import SampleData
+from dataset import FluidData
 from models.cnn1d import FluidCNN
+from evaluation import evaluation
+
 
 def main(args):
-    train_dataset = SampleData()
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, pin_memory=True)
+    print("Loading train csv...")
+    train_dataset = FluidData(args.train_csv)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=8)
 
+    test_dataset = FluidData(args.test_csv)
+    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, drop_last=True)
+
+    print("Init Model...")
     model = FluidCNN(12, 3)
     model.cuda()
 
@@ -29,6 +36,14 @@ def main(args):
     os.makedirs(args.logs, exist_ok=True)
     writer = SummaryWriter(log_dir=args.logs)
 
+
+    # evluation for debugging
+    model.eval()
+    test_loss = evaluation(model, test_loader)
+    print(f"test/Loss : {test_loss}")
+    model.train()
+
+    print("Init Training Loop...")
     for epoch in range(1, args.epoch+1):
         for step, [train_x, target_y] in enumerate(tqdm(train_loader)):
             # global_step += 1
@@ -42,12 +57,20 @@ def main(args):
             loss.backward()
             optimizer.step()
         
+        # print loss
         train_loss = loss.item()
-
         print("epoch : ", epoch)
         print("loss : ", train_loss)
-        writer.add_scalar('train/Loss', train_loss, epoch)
 
+        # evluation
+        model.eval()
+        test_loss = evaluation(model, test_loader)
+        print(f"test/Loss : {test_loss}")
+        model.train()
+
+        writer.add_scalar('train/Loss', train_loss, epoch)
+        writer.add_scalar('test/Loss', test_loss, epoch)
+        torch.save(model.state_dict(), os.path.join(args.logs, f'model_epoch_{epoch}.pth'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -56,6 +79,8 @@ if __name__ == '__main__':
     parser.add_argument('-lr', '--lr', type=int, default=0.1)
     parser.add_argument('-wdecay', '--wdecay', type=int, default=5e-4)
     parser.add_argument('-momentum', '--momentum', type=int, default=0.9)
+    parser.add_argument('--train_csv', type=str, default='./data/set1/00_CNN_train_Set(s1).csv')
+    parser.add_argument('--test_csv', type=str, default='./data/set1/00_CNN_test_Set(s1).csv')
 
     parser.add_argument('-logs', '--logs', type=str, default='logs')
 

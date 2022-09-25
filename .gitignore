@@ -1,5 +1,8 @@
 # custom
 logs
+data
+*.zip
+*.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
