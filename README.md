@@ -21,3 +21,9 @@ See train.py
 ```
 python train.py
 ```
+
+## evaluation
+See evaluation.py
+```
+python evaluation.py
+```
